@@ -6,9 +6,7 @@ import store.controller.ProductController;
 import store.controller.PurchaseController;
 import store.model.Product;
 import store.repository.FileProductRepository;
-import store.repository.FilePromotionRepository;
 import store.repository.ProductRepository;
-import store.repository.PromotionRepository;
 import store.service.ProductService;
 import store.service.ProductServiceImpl;
 import store.service.PurchaseService;
@@ -29,14 +27,14 @@ public class Application {
 
         // Services
         ProductService productService = new ProductServiceImpl(productRepository);
-        PurchaseService purchaseService = new PurchaseServiceImpl(productRepository);
+        PurchaseService purchaseService = new PurchaseServiceImpl(productRepository, productService);
 
         // Controllers
         ProductController productController = new ProductController(productService, purchaseService);
 
         // Views
         InputView inputView = new InputView();
-        OutputView outputView = new OutputView();
+        OutputView outputView = new OutputView(productService);
 
         PurchaseController purchaseController = new PurchaseController(productController, inputView, outputView);
 

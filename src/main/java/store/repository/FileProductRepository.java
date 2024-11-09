@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FileProductRepository implements ProductRepository {
     private final String filePath;
@@ -35,5 +36,12 @@ public class FileProductRepository implements ProductRepository {
             throw new RuntimeException("Error reading product file", e);
         }
         return products;
+    }
+
+    @Override
+    public Optional<Product> findProductByName(String name) {
+        return getAllProducts().stream()
+                .filter(product -> product.getName().equals(name))
+                .findFirst();
     }
 }
