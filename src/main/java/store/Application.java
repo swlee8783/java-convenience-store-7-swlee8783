@@ -1,9 +1,14 @@
 package store;
 
+import store.config.ConfigConstants;
+import store.config.ConfigLoader;
 import store.controller.ProductController;
+import store.controller.PurchaseController;
 import store.model.Product;
 import store.repository.FileProductRepository;
+import store.repository.FilePromotionRepository;
 import store.repository.ProductRepository;
+import store.repository.PromotionRepository;
 import store.service.ProductService;
 import store.service.ProductServiceImpl;
 import store.service.PurchaseService;
@@ -12,25 +17,35 @@ import store.view.InputView;
 import store.view.OutputView;
 
 import java.util.List;
-import java.util.Map;
 
 public class Application {
     public static void main(String[] args) {
-        ProductRepository repository = new FileProductRepository();
-        ProductService productService = new ProductServiceImpl(repository);
-        PurchaseService purchaseService = new PurchaseServiceImpl(repository);
-        ProductController controller = new ProductController(productService, purchaseService);
+        ConfigLoader configLoader = new ConfigLoader(ConfigConstants.CONFIG_FILE);
 
-        List<Product> productList = controller.displayProductList();
-        OutputView.printProductList(productList);
+        // Repositories
+        ProductRepository productRepository = new FileProductRepository(
+                configLoader.getProperty(ConfigConstants.PRODUCTS_FILE_KEY)
+        );
 
-        try {
-            String input = InputView.readPurchaseInput();
-            Map<String, Integer> purchasedItems = controller.processPurchase(input);
-            System.out.println("구매가 완료되었습니다.");
-            // 여기에 구매 내역 출력 로직을 추가할 수 있습니다.
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-        }
+        // Services
+        ProductService productService = new ProductServiceImpl(productRepository);
+        PurchaseService purchaseService = new PurchaseServiceImpl(productRepository);
+
+        // Controllers
+        ProductController productController = new ProductController(productService, purchaseService);
+
+        // Views
+        InputView inputView = new InputView();
+        OutputView outputView = new OutputView();
+
+        // Main purchase controller
+        PurchaseController purchaseController = new PurchaseController(productController, inputView, outputView);
+
+        // Display initial product list
+        List<Product> productList = productController.displayProductList();
+        outputView.printProductList(productList);
+
+        // Start purchase process
+        purchaseController.processPurchase();
     }
 }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
@@ -42,22 +43,17 @@ public class PurchaseServiceImpl implements PurchaseService {
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
             String name = entry.getKey();
             int quantity = entry.getValue();
-            Product product = findProduct(products, name);
-            if (product == null) {
-                throw new IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.");
-            }
+            Product product = findProduct(products, name)
+                    .orElseThrow(() -> new IllegalArgumentException("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요."));
             if (quantity > product.getQuantity()) {
                 throw new IllegalArgumentException("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
             }
         }
     }
 
-    private Product findProduct(List<Product> products, String name) {
-        for (Product product : products) {
-            if (product.getName().equals(name)) {
-                return product;
-            }
-        }
-        return null;
+    private Optional<Product> findProduct(List<Product> products, String name) {
+        return products.stream()
+                .filter(product -> product.getName().equals(name))
+                .findFirst();
     }
 }
