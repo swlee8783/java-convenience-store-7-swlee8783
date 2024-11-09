@@ -38,14 +38,11 @@ public class Application {
         InputView inputView = new InputView();
         OutputView outputView = new OutputView();
 
-        // Main purchase controller
         PurchaseController purchaseController = new PurchaseController(productController, inputView, outputView);
 
-        // Display initial product list
         List<Product> productList = productController.displayProductList();
         outputView.printProductList(productList);
 
-        // Start purchase process
         purchaseController.processPurchase();
     }
 }
