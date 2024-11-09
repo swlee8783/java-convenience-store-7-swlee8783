@@ -44,4 +44,20 @@ public class FileProductRepository implements ProductRepository {
                 .filter(product -> product.getName().equals(name))
                 .findFirst();
     }
+
+    @Override
+    public void updateProduct(Product product) {
+        List<Product> products = getAllProducts();
+        for (int i = 0; i < products.size(); i++) {
+            if (products.get(i).getName().equals(product.getName())) {
+                products.set(i, product);
+                break;
+            }
+        }
+        saveProducts(products);
+    }
+
+    private void saveProducts(List<Product> products) {
+        // 파일에 제품 목록을 저장하는 로직 구현
+    }
 }

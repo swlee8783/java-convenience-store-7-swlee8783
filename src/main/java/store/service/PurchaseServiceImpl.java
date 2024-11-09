@@ -1,6 +1,7 @@
 package store.service;
 
 import store.model.Product;
+import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
 
@@ -13,17 +14,27 @@ import java.util.Optional;
 public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
     private final ProductService productService;
+    private final PromotionService promotionService;
 
-    public PurchaseServiceImpl(ProductRepository productRepository, ProductService productService) {
+    public PurchaseServiceImpl(ProductRepository productRepository, ProductService productService, PromotionService promotionService) {
         this.productRepository = productRepository;
         this.productService = productService;
+        this.promotionService = promotionService;
     }
 
     @Override
-    public Map<String, Integer> processPurchase(String input) {
-        Map<String, Integer> purchaseItems = parsePurchaseInput(input);
-        validatePurchase(purchaseItems);
-        return purchaseItems;
+    public PurchaseResult processPurchase(String input) {
+        Map<String, Integer> purchasedItems = parsePurchaseInput(input);
+        validatePurchase(purchasedItems);
+        updateInventory(purchasedItems);
+        int totalPrice = calculateTotalPrice(purchasedItems);
+        int promotionDiscount = calculatePromotionDiscount(purchasedItems);
+        return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount);
+    }
+
+    @Override
+    public boolean shouldContinueShopping(String input) {
+        return input.equalsIgnoreCase("Y");
     }
 
     private Map<String, Integer> parsePurchaseInput(String input) {
@@ -59,5 +70,33 @@ public class PurchaseServiceImpl implements PurchaseService {
         return products.stream()
                 .filter(product -> product.getName().equals(name))
                 .findFirst();
+    }
+
+
+    @Override
+    public void updateInventory(Map<String, Integer> items) {
+        for (Map.Entry<String, Integer> entry : items.entrySet()) {
+            Product product = productService.getProductByName(entry.getKey());
+            product.decreaseQuantity(entry.getValue());
+            productRepository.updateProduct(product);
+        }
+    }
+
+    private int calculateTotalPrice(Map<String, Integer> items) {
+        return items.entrySet().stream()
+                .mapToInt(entry -> {
+                    Product product = productService.getProductByName(entry.getKey());
+                    return product.getPrice() * entry.getValue();
+                })
+                .sum();
+    }
+
+    private int calculatePromotionDiscount(Map<String, Integer> items) {
+        return items.entrySet().stream()
+                .mapToInt(entry -> {
+                    Product product = productService.getProductByName(entry.getKey());
+                    return promotionService.calculateDiscount(product, entry.getValue());
+                })
+                .sum();
     }
 }

@@ -1,7 +1,11 @@
 package store.service;
 
+import store.model.PurchaseResult;
+
 import java.util.Map;
 
 public interface PurchaseService {
-    Map<String, Integer> processPurchase(String input);
+    PurchaseResult processPurchase(String input);
+    void updateInventory(Map<String, Integer> items);
+    boolean shouldContinueShopping(String input);
 }

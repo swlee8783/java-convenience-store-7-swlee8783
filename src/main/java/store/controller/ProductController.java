@@ -19,8 +19,4 @@ public class ProductController {
     public List<Product> displayProductList() {
         return productService.getProductList();
     }
-
-    public Map<String, Integer> processPurchase(String input) {
-        return purchaseService.processPurchase(input);
-    }
 }

@@ -20,4 +20,3 @@ public enum ErrorMessages {
         return new IllegalArgumentException(getMessage());
     }
 }
-}
