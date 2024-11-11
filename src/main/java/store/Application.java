@@ -34,11 +34,11 @@ public class Application {
             PurchaseService purchaseService = new PurchaseServiceImpl(productRepository, productService, promotionService);
 
             // Controllers
-            ProductController productController = new ProductController(productService, purchaseService);
+            ProductController productController = new ProductController(productService);
 
             // Views
             InputView inputView = new InputView();
-            OutputView outputView = new OutputView(productService);
+            OutputView outputView = new OutputView(productService, purchaseService);
 
             PurchaseController purchaseController = new PurchaseController(purchaseService, inputView, outputView);
 

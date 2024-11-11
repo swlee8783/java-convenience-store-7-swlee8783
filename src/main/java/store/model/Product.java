@@ -6,13 +6,13 @@ public class Product {
     private final String name;
     private final int price;
     private int quantity;
-    private String promotion;
+    private final String promotion;
 
     public Product(String name, int price, int quantity, String promotion) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
-        this.promotion = promotion;
+        this.promotion = setValidPromotion(promotion);
     }
 
     // Getters
@@ -29,7 +29,19 @@ public class Product {
     }
 
     public String getPromotion() {
+        if (promotion == null) {
+            return "";
+        }
         return promotion;
+    }
+
+    // Setter
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public boolean isOutOfStock() {
+        return quantity == 0;
     }
 
     public void decreaseQuantity(int amount) {
@@ -39,8 +51,14 @@ public class Product {
         this.quantity -= amount;
     }
 
-    // Setter
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public boolean hasPromotion() {
+        return promotion != null && !promotion.isEmpty();
+    }
+
+    private String setValidPromotion(String promotion) {
+        if (promotion == null) {
+            return "";
+        }
+        return promotion;
     }
 }

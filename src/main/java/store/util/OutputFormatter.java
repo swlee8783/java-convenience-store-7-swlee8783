@@ -5,9 +5,23 @@ import store.model.PurchaseResult;
 
 public class OutputFormatter {
     public static String formatProductInfo(Product product) {
-        String quantityStatus = product.getQuantity() > 0 ? product.getQuantity() + "개" : "재고 없음";
-        String promotionDisplay = product.getPromotion() != null ? " " + product.getPromotion() : "";
-        return String.format("- %s %d원 %s%s", product.getName(), product.getPrice(), quantityStatus, promotionDisplay);
+        String quantityStatus = formatQuantityStatus(product.getQuantity());
+        String promotionDisplay = formatPromotionDisplay(product.getPromotion());
+        return String.format("- %s %,d원 %s%s", product.getName(), product.getPrice(), quantityStatus, promotionDisplay);
+    }
+
+    public static String formatQuantityStatus(int quantity) {
+        if (quantity > 0) {
+            return quantity + "개";
+        }
+        return "재고 없음";
+    }
+
+    private static String formatPromotionDisplay(String promotion) {
+        if (promotion != null && !promotion.isEmpty()) {
+            return " " + promotion;
+        }
+        return "";
     }
 
     public static String formatPurchaseItem(String name, int quantity, int price) {
@@ -15,7 +29,7 @@ public class OutputFormatter {
     }
 
     public static String formatTotalAmount(PurchaseResult result) {
-        return String.format("총구매액\t\t\t%d\n행사할인\t\t\t-%d\n프로모션 할인\t\t-%d원\n내실돈\t\t\t%d",
+        return String.format("총구매액\t\t\t%,d\n행사할인\t\t\t-%,d\n프로모션 할인\t\t-%,d원\n내실돈\t\t\t%,d",
                 result.getTotalPrice(),
                 result.getPromotionDiscount(),
                 result.getPromotionDiscount(),

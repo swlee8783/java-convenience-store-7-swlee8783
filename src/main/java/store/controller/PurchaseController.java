@@ -5,6 +5,8 @@ import store.service.PurchaseService;
 import store.view.InputView;
 import store.view.OutputView;
 
+import java.time.LocalDate;
+
 public class PurchaseController {
     private final PurchaseService purchaseService;
     private final InputView inputView;
@@ -18,19 +20,16 @@ public class PurchaseController {
 
     public void processPurchase() {
         do {
-            try {
-                processSinglePurchase();
-            } catch (IllegalArgumentException e) {
-                outputView.printError(e.getMessage());
-            }
+            processSinglePurchase();
         } while (continueShopping());
-        outputView.printThankYouMessage();
     }
 
     private void processSinglePurchase() {
         try {
             String input = inputView.readPurchaseInput();
-            PurchaseResult result = purchaseService.processPurchase(input);
+            boolean useMembership = inputView.readMembershipDiscount();
+            LocalDate currentDate = LocalDate.now();
+            PurchaseResult result = purchaseService.processPurchase(input, useMembership, currentDate);
             outputView.printPurchaseResult(result);
         } catch (IllegalArgumentException e) {
             outputView.printError(e.getMessage());
@@ -38,11 +37,7 @@ public class PurchaseController {
     }
 
     private boolean continueShopping() {
-        try {
-            return inputView.readContinueShopping();
-        } catch (IllegalArgumentException e) {
-            outputView.printError(e.getMessage());
-            return continueShopping();
-        }
+        String input = String.valueOf(inputView.readContinueShopping());
+        return purchaseService.shouldContinueShopping(input);
     }
 }

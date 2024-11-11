@@ -2,7 +2,7 @@ package store.util;
 
 public class InputValidator {
     public static void validatePurchaseInput(String input) {
-        if (!input.matches("(\\[\\w+-\\d+\\],?)+")) {
+        if (!input.matches("(\\[[가-힣a-zA-Z0-9\\s]+-\\d+\\],?)+")) {
             throw ErrorMessages.INVALID_INPUT_FORMAT.getException();
         }
     }

@@ -14,7 +14,10 @@ public enum ErrorMessages {
     PROMOTION_FILE_WRITE_ERROR("[ERROR] 프로모션 파일을 저장하는 중 오류가 발생했습니다: %s"),
     PROMOTION_NOT_FOUND("[ERROR] 해당 프로모션을 찾을 수 없습니다: %s"),
     INVALID_CONTINUE_SHOPPING_INPUT("[ERROR] 잘못된 입력입니다. Y 또는 N을 입력해주세요."),
-    PRODUCT_FILE_WRITE_ERROR("[ERROR] 상품 파일 쓰기 중 오류가 발생했습니다: %s");;
+    PRODUCT_FILE_WRITE_ERROR("[ERROR] 상품 파일 쓰기 중 오류가 발생했습니다: %s"),
+    INVALID_MEMBERSHIP_INPUT("[ERROR] 잘못된 멤버십 입력입니다. Y 또는 N을 입력해주세요."),
+    INVALID_PROMOTION_ADDITION_INPUT("[ERROR] 잘못된 프로모션 추가 입력입니다. Y 또는 N을 입력해주세요."),
+    INVALID_PRODUCT_DATA_FORMAT("[ERROR] 상품 데이터 형식이 올바르지 않습니다: %s");;;
 
     private final String message;
 

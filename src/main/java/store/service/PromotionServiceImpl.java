@@ -16,12 +16,11 @@ public class PromotionServiceImpl implements PromotionService {
 
     @Override
     public int calculateDiscount(Product product, int quantity, LocalDate currentDate) {
+        if (product.getPromotion() == null) {return 0;}
         Promotion promotion = getPromotionByName(product.getPromotion());
-        if (promotion != null && promotion.isValidOn(currentDate)) {
-            int sets = quantity / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity());
-            return sets * promotion.getGetFreeQuantity() * product.getPrice();
-        }
-        return 0;
+        if (promotion == null || !promotion.isValidOn(currentDate)) {return 0;}
+        int sets = quantity / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity());
+        return sets * promotion.getGetFreeQuantity() * product.getPrice();
     }
 
     @Override

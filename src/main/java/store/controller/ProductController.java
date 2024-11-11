@@ -9,11 +9,9 @@ import java.util.Map;
 
 public class ProductController {
     private final ProductService productService;
-    private final PurchaseService purchaseService;
 
-    public ProductController(ProductService productService, PurchaseService purchaseService) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.purchaseService = purchaseService;
     }
 
     public List<Product> displayProductList() {

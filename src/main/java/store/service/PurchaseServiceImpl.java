@@ -1,7 +1,6 @@
 package store.service;
 
 import store.model.Product;
-import store.model.Promotion;
 import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
@@ -9,9 +8,6 @@ import store.util.ErrorMessages;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-
-import java.util.List;
-import java.util.Optional;
 
 public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
@@ -25,15 +21,22 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     @Override
-    public PurchaseResult processPurchase(String input) {
+    public PurchaseResult processPurchase(String input, boolean useMembership, LocalDate currentDate) {
         Map<String, Integer> purchasedItems = parsePurchaseInput(input);
         validatePurchase(purchasedItems);
-        updateInventory(purchasedItems);
-        LocalDate currentDate = LocalDate.now();
         Map<String, Integer> giftItems = calculateGiftItems(purchasedItems, currentDate);
+        updateInventory(purchasedItems);
         int totalPrice = calculateTotalPrice(purchasedItems);
-        int promotionDiscount = calculatePromotionDiscount(purchasedItems);
-        return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount, giftItems);
+        int promotionDiscount = calculatePromotionDiscount(purchasedItems, currentDate);
+        int membershipDiscount = calculateMembershipDiscount(totalPrice - promotionDiscount, useMembership);
+        return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount, membershipDiscount, giftItems);
+    }
+
+    private int calculateMembershipDiscount(int price, boolean useMembership) {
+        if (!useMembership) {
+            return 0;
+        }
+        return Math.min((int)(price * 0.3), 8000);
     }
 
     @Override
@@ -96,7 +99,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         int discount = promotionService.calculateDiscount(product, quantity, currentDate);
         return discount / product.getPrice();
     }
-    
+
     @Override
     public void updateInventory(Map<String, Integer> items) {
         for (Map.Entry<String, Integer> purchaseItem : items.entrySet()) {
@@ -117,8 +120,7 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .sum();
     }
 
-    private int calculatePromotionDiscount(Map<String, Integer> items) {
-        LocalDate currentDate = LocalDate.now();
+    private int calculatePromotionDiscount(Map<String, Integer> items, LocalDate currentDate) {
         return items.entrySet().stream()
                 .mapToInt(purchaseEntry -> {
                     String productName = purchaseEntry.getKey();
@@ -127,5 +129,9 @@ public class PurchaseServiceImpl implements PurchaseService {
                     return promotionService.calculateDiscount(product, quantity, currentDate);
                 })
                 .sum();
+    }
+
+    public int calculateFinalPrice(PurchaseResult result) {
+        return result.getTotalPrice() - result.getPromotionDiscount() - result.getMembershipDiscount();
     }
 }
