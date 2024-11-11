@@ -6,11 +6,9 @@ import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-
-import java.util.List;
-import java.util.Optional;
 
 public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
@@ -36,22 +34,20 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems) {
         Map<String, Integer> giftItems = new HashMap<>();
+        LocalDate currentDate = LocalDate.now();
         for (Map.Entry<String, Integer> entry : purchasedItems.entrySet()) {
             Product product = productService.getProductByName(entry.getKey());
             if (product.getPromotion() != null) {
                 Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
-                int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
-                if (giftQuantity > 0) {
-                    giftItems.put(product.getName(), giftQuantity);
+                if (promotion.isValidOn(currentDate)) {
+                    int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
+                    if (giftQuantity > 0) {
+                        giftItems.put(product.getName(), giftQuantity);
+                    }
                 }
             }
         }
         return giftItems;
-    }
-
-    @Override
-    public boolean shouldContinueShopping(String input) {
-        return input.equalsIgnoreCase("Y");
     }
 
     private Map<String, Integer> parsePurchaseInput(String input) {
@@ -83,13 +79,6 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
     }
 
-    private Optional<Product> findProduct(List<Product> products, String name) {
-        return products.stream()
-                .filter(product -> product.getName().equals(name))
-                .findFirst();
-    }
-
-
     @Override
     public void updateInventory(Map<String, Integer> items) {
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
@@ -109,10 +98,17 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     private int calculatePromotionDiscount(Map<String, Integer> items) {
+        LocalDate currentDate = LocalDate.now();
         return items.entrySet().stream()
                 .mapToInt(entry -> {
                     Product product = productService.getProductByName(entry.getKey());
-                    return promotionService.calculateDiscount(product, entry.getValue());
+                    Promotion promotion = product.getPromotion() != null ?
+                            promotionService.getPromotionByName(product.getPromotion()) : null;
+
+                    if (promotion != null && promotion.isValidOn(currentDate)) {
+                        return promotionService.calculateDiscount(product, entry.getValue());
+                    }
+                    return 0;
                 })
                 .sum();
     }

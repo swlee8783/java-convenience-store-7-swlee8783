@@ -7,5 +7,4 @@ import java.util.Map;
 public interface PurchaseService {
     PurchaseResult processPurchase(String input);
     void updateInventory(Map<String, Integer> items);
-    boolean shouldContinueShopping(String input);
 }

@@ -34,7 +34,11 @@ public class PurchaseController {
     }
 
     private boolean continueShopping() {
-        String input = String.valueOf(inputView.readContinueShopping());
-        return purchaseService.shouldContinueShopping(input);
+        try {
+            return inputView.readContinueShopping();
+        } catch (IllegalArgumentException e) {
+            outputView.printError(e.getMessage());
+            return continueShopping();
+        }
     }
 }
