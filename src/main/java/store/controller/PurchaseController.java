@@ -18,7 +18,11 @@ public class PurchaseController {
 
     public void processPurchase() {
         do {
-            processSinglePurchase();
+            try {
+                processSinglePurchase();
+            } catch (IllegalArgumentException e) {
+                outputView.printError(e.getMessage());
+            }
         } while (continueShopping());
         outputView.printThankYouMessage();
     }

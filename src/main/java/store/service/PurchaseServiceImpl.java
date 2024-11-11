@@ -67,14 +67,18 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     private void validatePurchase(Map<String, Integer> items) {
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            Product product = productService.getProductByName(entry.getKey());
             String name = entry.getKey();
             int quantity = entry.getValue();
+            Product product = productService.getProductByName(name);
+
+            if (product == null) {
+                throw ErrorMessages.PRODUCT_NOT_FOUND.getException(name);
+            }
             if (quantity <= 0) {
                 throw ErrorMessages.INVALID_QUANTITY.getException();
             }
             if (quantity > product.getQuantity()) {
-                throw ErrorMessages.INSUFFICIENT_STOCK.getException();
+                throw ErrorMessages.INSUFFICIENT_STOCK.getException(product.getQuantity());
             }
         }
     }
@@ -102,10 +106,14 @@ public class PurchaseServiceImpl implements PurchaseService {
         return items.entrySet().stream()
                 .mapToInt(entry -> {
                     Product product = productService.getProductByName(entry.getKey());
-                    Promotion promotion = product.getPromotion() != null ?
-                            promotionService.getPromotionByName(product.getPromotion()) : null;
-
-                    if (promotion != null && promotion.isValidOn(currentDate)) {
+                    if (product.getPromotion() != null) {
+                        Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
+                        if (promotion == null) {
+                            throw ErrorMessages.PROMOTION_NOT_FOUND.getException(product.getPromotion());
+                        }
+                        if (!promotion.isValidOn(currentDate)) {
+                            throw ErrorMessages.PROMOTION_EXPIRED.getException(product.getPromotion());
+                        }
                         return promotionService.calculateDiscount(product, entry.getValue());
                     }
                     return 0;
