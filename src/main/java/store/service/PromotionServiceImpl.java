@@ -32,12 +32,18 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public void applyPromotion(Product product, int quantity) {
         Promotion promotion = promotionRepository.findPromotionByName(product.getPromotion())
-                .orElseThrow(() -> new IllegalArgumentException("해당 프로모션을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 해당 프로모션을 찾을 수 없습니다."));
 
         int promotionAppliedQuantity = (quantity / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity()))
                 * promotion.getGetFreeQuantity();
 
         promotion.decreasePromotionStock(promotionAppliedQuantity);
         promotionRepository.updatePromotion(promotion);
+    }
+
+    @Override
+    public Promotion getPromotionByName(String name) {
+        return promotionRepository.findPromotionByName(name)
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 프로모션을 찾을 수 없습니다: " + name));
     }
 }

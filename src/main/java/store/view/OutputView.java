@@ -54,6 +54,7 @@ public class OutputView {
         System.out.println("==============================");
         System.out.printf("총구매액\t\t\t%d\n", result.getTotalPrice());
         System.out.printf("행사할인\t\t\t-%d\n", result.getPromotionDiscount());
+        System.out.printf("프로모션 할인\t\t-%d원\n", result.getPromotionDiscount());
         System.out.printf("내실돈\t\t\t%d\n", result.getTotalPrice() - result.getPromotionDiscount());
     }
 

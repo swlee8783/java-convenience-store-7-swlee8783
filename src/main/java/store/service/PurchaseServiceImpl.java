@@ -1,6 +1,7 @@
 package store.service;
 
 import store.model.Product;
+import store.model.Promotion;
 import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
@@ -25,11 +26,27 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public PurchaseResult processPurchase(String input) {
         Map<String, Integer> purchasedItems = parsePurchaseInput(input);
+        Map<String, Integer> giftItems = calculateGiftItems(purchasedItems);
         validatePurchase(purchasedItems);
         updateInventory(purchasedItems);
         int totalPrice = calculateTotalPrice(purchasedItems);
         int promotionDiscount = calculatePromotionDiscount(purchasedItems);
-        return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount);
+        return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount, giftItems);
+    }
+
+    private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems) {
+        Map<String, Integer> giftItems = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : purchasedItems.entrySet()) {
+            Product product = productService.getProductByName(entry.getKey());
+            if (product.getPromotion() != null) {
+                Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
+                int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
+                if (giftQuantity > 0) {
+                    giftItems.put(product.getName(), giftQuantity);
+                }
+            }
+        }
+        return giftItems;
     }
 
     @Override
