@@ -5,8 +5,6 @@ import store.service.PurchaseService;
 import store.view.InputView;
 import store.view.OutputView;
 
-import java.util.Map;
-
 public class PurchaseController {
     private final PurchaseService purchaseService;
     private final InputView inputView;
@@ -22,6 +20,7 @@ public class PurchaseController {
         do {
             processSinglePurchase();
         } while (continueShopping());
+        outputView.printThankYouMessage();
     }
 
     private void processSinglePurchase() {

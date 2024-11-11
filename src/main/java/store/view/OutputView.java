@@ -61,4 +61,8 @@ public class OutputView {
     public void printError(String message) {
         System.out.println(message);
     }
+
+    public void printThankYouMessage() {
+        System.out.println("저희 편의점을 이용해주셔서 감사합니다. 안녕히 가세요.");
+    }
 }

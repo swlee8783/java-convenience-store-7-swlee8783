@@ -10,14 +10,11 @@ public class InputView {
     }
 
     public boolean readContinueShopping() {
-        System.out.println("감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)");
-        String input = Console.readLine();
-        if (input.equalsIgnoreCase("Y")) {
-            return true;
-        } else if (input.equalsIgnoreCase("N")) {
-            return false;
-        } else {
-            throw ErrorMessages.INVALID_INPUT_FORMAT.getException();
+        System.out.println("추가 구매를 원하시나요? (Y/N)");
+        String input = Console.readLine().trim().toUpperCase();
+        if (input.equals("Y") || input.equals("N")) {
+            return input.equals("Y");
         }
+        throw new IllegalArgumentException("[ERROR] 잘못된 입력입니다. Y 또는 N을 입력해주세요.");
     }
 }
