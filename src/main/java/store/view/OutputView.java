@@ -29,11 +29,17 @@ public class OutputView {
     }
 
     private String getQuantityStatus(int quantity) {
-        return quantity > 0 ? quantity + "개" : "재고 없음";
+        if (quantity <= 0) {
+            return "재고 없음";
+        }
+        return quantity + "개";
     }
 
     private String getPromotionDisplay(String promotion) {
-        return promotion != null ? " " + promotion : "";
+        if (promotion == null || promotion.isEmpty()) {
+            return "";
+        }
+        return " " + promotion;
     }
 
     public void printPurchaseResult(PurchaseResult result) {
