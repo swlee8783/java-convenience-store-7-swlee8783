@@ -18,8 +18,26 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.getAllProducts();
     }
 
+    @Override
     public Product getProductByName(String name) {
         return productRepository.findProductByName(name)
                 .orElseThrow(ErrorMessages.PRODUCT_NOT_FOUND::getException);
+    }
+
+    @Override
+    public void updateProductStock(String name, int quantity) {
+        Product product = getProductByName(name);
+        int newQuantity = product.getQuantity() - quantity;
+        if (newQuantity < 0) {
+            throw ErrorMessages.INSUFFICIENT_STOCK.getException(product.getQuantity());
+        }
+        product.setQuantity(newQuantity);
+        productRepository.updateProduct(product);
+    }
+
+    @Override
+    public boolean isProductAvailable(String name, int quantity) {
+        Product product = getProductByName(name);
+        return product.getQuantity() >= quantity;
     }
 }

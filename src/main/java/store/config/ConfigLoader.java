@@ -25,7 +25,11 @@ public class ConfigLoader {
     }
 
     public String getProperty(String key) {
-        return properties.getProperty(key);
+        String value = properties.getProperty(key);
+        if (value == null) {
+            throw ErrorMessages.CONFIG_PROPERTY_NOT_FOUND.getException(key);
+        }
+        return value;
     }
 
     public String getProperty(String key, String defaultValue) {

@@ -6,9 +6,11 @@ import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+
+import java.util.List;
+import java.util.Optional;
 
 public class PurchaseServiceImpl implements PurchaseService {
     private final ProductRepository productRepository;
@@ -24,30 +26,17 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public PurchaseResult processPurchase(String input) {
         Map<String, Integer> purchasedItems = parsePurchaseInput(input);
-        Map<String, Integer> giftItems = calculateGiftItems(purchasedItems);
         validatePurchase(purchasedItems);
         updateInventory(purchasedItems);
+        Map<String, Integer> giftItems = calculateGiftItems(purchasedItems);
         int totalPrice = calculateTotalPrice(purchasedItems);
         int promotionDiscount = calculatePromotionDiscount(purchasedItems);
         return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount, giftItems);
     }
 
-    private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems) {
-        Map<String, Integer> giftItems = new HashMap<>();
-        LocalDate currentDate = LocalDate.now();
-        for (Map.Entry<String, Integer> entry : purchasedItems.entrySet()) {
-            Product product = productService.getProductByName(entry.getKey());
-            if (product.getPromotion() != null) {
-                Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
-                if (promotion.isValidOn(currentDate)) {
-                    int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
-                    if (giftQuantity > 0) {
-                        giftItems.put(product.getName(), giftQuantity);
-                    }
-                }
-            }
-        }
-        return giftItems;
+    @Override
+    public boolean shouldContinueShopping(String input) {
+        return input.equalsIgnoreCase("Y");
     }
 
     private Map<String, Integer> parsePurchaseInput(String input) {
@@ -69,26 +58,38 @@ public class PurchaseServiceImpl implements PurchaseService {
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
             String name = entry.getKey();
             int quantity = entry.getValue();
-            Product product = productService.getProductByName(name);
-
-            if (product == null) {
-                throw ErrorMessages.PRODUCT_NOT_FOUND.getException(name);
-            }
-            if (quantity <= 0) {
-                throw ErrorMessages.INVALID_QUANTITY.getException();
-            }
-            if (quantity > product.getQuantity()) {
+            if (!productService.isProductAvailable(name, quantity)) {
+                Product product = productService.getProductByName(name);
                 throw ErrorMessages.INSUFFICIENT_STOCK.getException(product.getQuantity());
             }
         }
     }
 
+    private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems) {
+        Map<String, Integer> giftItems = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : purchasedItems.entrySet()) {
+            Product product = productService.getProductByName(entry.getKey());
+            if (product.getPromotion() != null) {
+                Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
+                int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
+                if (giftQuantity > 0) {
+                    giftItems.put(product.getName(), giftQuantity);
+                }
+            }
+        }
+        return giftItems;
+    }
+
+    private Optional<Product> findProduct(List<Product> products, String name) {
+        return products.stream()
+                .filter(product -> product.getName().equals(name))
+                .findFirst();
+    }
+
     @Override
     public void updateInventory(Map<String, Integer> items) {
         for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            Product product = productService.getProductByName(entry.getKey());
-            product.decreaseQuantity(entry.getValue());
-            productRepository.updateProduct(product);
+            productService.updateProductStock(entry.getKey(), entry.getValue());
         }
     }
 
@@ -102,21 +103,10 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
 
     private int calculatePromotionDiscount(Map<String, Integer> items) {
-        LocalDate currentDate = LocalDate.now();
         return items.entrySet().stream()
                 .mapToInt(entry -> {
                     Product product = productService.getProductByName(entry.getKey());
-                    if (product.getPromotion() != null) {
-                        Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
-                        if (promotion == null) {
-                            throw ErrorMessages.PROMOTION_NOT_FOUND.getException(product.getPromotion());
-                        }
-                        if (!promotion.isValidOn(currentDate)) {
-                            throw ErrorMessages.PROMOTION_EXPIRED.getException(product.getPromotion());
-                        }
-                        return promotionService.calculateDiscount(product, entry.getValue());
-                    }
-                    return 0;
+                    return promotionService.calculateDiscount(product, entry.getValue());
                 })
                 .sum();
     }

@@ -3,8 +3,8 @@ package store.model;
 import store.util.ErrorMessages;
 
 public class Product {
-    private String name;
-    private int price;
+    private final String name;
+    private final int price;
     private int quantity;
     private String promotion;
 
@@ -19,12 +19,15 @@ public class Product {
     public String getName() {
         return name;
     }
+
     public int getPrice() {
         return price;
     }
+
     public int getQuantity() {
         return quantity;
     }
+
     public String getPromotion() {
         return promotion;
     }
@@ -34,5 +37,10 @@ public class Product {
             throw ErrorMessages.INSUFFICIENT_STOCK.getException(this.quantity);
         }
         this.quantity -= amount;
+    }
+
+    // Setter
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 }

@@ -17,33 +17,38 @@ import java.util.List;
 
 public class Application {
     public static void main(String[] args) {
-        ConfigLoader configLoader = new ConfigLoader(ConfigConstants.CONFIG_FILE);
+        try {
+            ConfigLoader configLoader = new ConfigLoader(ConfigConstants.CONFIG_FILE);
 
-        // Repositories
-        ProductRepository productRepository = new FileProductRepository(
-                configLoader.getProperty(ConfigConstants.PRODUCTS_FILE_KEY)
-        );
-        PromotionRepository promotionRepository = new FilePromotionRepository(
-                configLoader.getProperty(ConfigConstants.PROMOTIONS_FILE_KEY)
-        );
+            // Repositories
+            ProductRepository productRepository = new FileProductRepository(
+                    configLoader.getProperty(ConfigConstants.PRODUCTS_FILE_KEY)
+            );
+            PromotionRepository promotionRepository = new FilePromotionRepository(
+                    configLoader.getProperty(ConfigConstants.PROMOTIONS_FILE_KEY)
+            );
 
-        // Services
-        ProductService productService = new ProductServiceImpl(productRepository);
-        PromotionService promotionService = new PromotionServiceImpl(promotionRepository);
-        PurchaseService purchaseService = new PurchaseServiceImpl(productRepository, productService, promotionService);
+            // Services
+            ProductService productService = new ProductServiceImpl(productRepository);
+            PromotionService promotionService = new PromotionServiceImpl(promotionRepository);
+            PurchaseService purchaseService = new PurchaseServiceImpl(productRepository, productService, promotionService);
 
-        // Controllers
-        ProductController productController = new ProductController(productService, purchaseService);
+            // Controllers
+            ProductController productController = new ProductController(productService, purchaseService);
 
-        // Views
-        InputView inputView = new InputView();
-        OutputView outputView = new OutputView(productService);
+            // Views
+            InputView inputView = new InputView();
+            OutputView outputView = new OutputView(productService);
 
-        PurchaseController purchaseController = new PurchaseController(purchaseService, inputView, outputView);
+            PurchaseController purchaseController = new PurchaseController(purchaseService, inputView, outputView);
 
-        List<Product> productList = productController.displayProductList();
-        outputView.printProductList(productList);
+            List<Product> productList = productController.displayProductList();
+            outputView.printProductList(productList);
 
-        purchaseController.processPurchase();
+            purchaseController.processPurchase();
+
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }

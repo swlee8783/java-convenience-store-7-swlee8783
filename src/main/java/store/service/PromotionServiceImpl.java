@@ -41,4 +41,10 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.decreasePromotionStock(promotionAppliedQuantity);
         promotionRepository.updatePromotion(promotion);
     }
+
+    @Override
+    public Promotion getPromotionByName(String name) {
+        return promotionRepository.findPromotionByName(name)
+                .orElseThrow(() -> ErrorMessages.PROMOTION_NOT_FOUND.getException(name));
+    }
 }

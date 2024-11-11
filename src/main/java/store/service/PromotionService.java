@@ -12,5 +12,5 @@ public interface PromotionService {
 
     void applyPromotion(Product product, int quantity);
 
-    Promotion getPromotionByName(String promotion);
+    Promotion getPromotionByName(String name);
 }

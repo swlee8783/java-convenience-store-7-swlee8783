@@ -3,9 +3,7 @@ package store.repository;
 import store.model.Product;
 import store.util.ErrorMessages;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +57,17 @@ public class FileProductRepository implements ProductRepository {
     }
 
     private void saveProducts(List<Product> products) {
-        // 파일에 제품 목록을 저장하는 로직 구현
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write("name,price,quantity,promotion\n");
+            for (Product product : products) {
+                writer.write(String.format("%s,%d,%d,%s\n",
+                        product.getName(),
+                        product.getPrice(),
+                        product.getQuantity(),
+                        product.getPromotion() != null ? product.getPromotion() : ""));
+            }
+        } catch (IOException e) {
+            throw ErrorMessages.PRODUCT_FILE_WRITE_ERROR.getException(e.getMessage());
+        }
     }
 }
