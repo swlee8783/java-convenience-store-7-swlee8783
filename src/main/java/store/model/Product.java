@@ -31,7 +31,7 @@ public class Product {
 
     public void decreaseQuantity(int amount) {
         if (amount > this.quantity) {
-            throw ErrorMessages.INSUFFICIENT_STOCK.getException();
+            throw ErrorMessages.INSUFFICIENT_STOCK.getException(this.quantity);
         }
         this.quantity -= amount;
     }

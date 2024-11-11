@@ -1,5 +1,6 @@
 package store.config;
 
+import store.util.ErrorMessages;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -15,11 +16,11 @@ public class ConfigLoader {
     private void loadProperties(String fileName) {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileName)) {
             if (input == null) {
-                throw new RuntimeException("Unable to find " + fileName);
+                throw ErrorMessages.CONFIG_FILE_NOT_FOUND.getException(fileName);
             }
             properties.load(input);
         } catch (IOException ex) {
-            throw new RuntimeException("Error loading " + fileName, ex);
+            throw ErrorMessages.CONFIG_FILE_LOAD_ERROR.getException(fileName);
         }
     }
 

@@ -1,6 +1,7 @@
 package store.repository;
 
 import store.model.Product;
+import store.util.ErrorMessages;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -33,7 +34,7 @@ public class FileProductRepository implements ProductRepository {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("Error reading product file", e);
+            ErrorMessages.PRODUCT_FILE_READ_ERROR.getException(e.getMessage());
         }
         return products;
     }

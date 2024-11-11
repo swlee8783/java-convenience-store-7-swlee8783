@@ -1,5 +1,6 @@
 package store.model;
 
+import store.util.ErrorMessages;
 import java.time.LocalDate;
 
 public class Promotion {
@@ -45,7 +46,7 @@ public class Promotion {
 
     public void decreasePromotionStock(int amount) {
         if (amount > this.promotionStock) {
-            throw new IllegalArgumentException("프로모션 재고가 부족합니다.");
+            throw ErrorMessages.INSUFFICIENT_PROMOTION_STOCK.getException(this.promotionStock);
         }
         this.promotionStock -= amount;
     }

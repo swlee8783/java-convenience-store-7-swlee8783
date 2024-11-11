@@ -1,6 +1,7 @@
 package store.repository;
 
 import store.model.Promotion;
+import store.util.ErrorMessages;
 
 import java.io.*;
 import java.time.LocalDate;
@@ -32,7 +33,7 @@ public class FilePromotionRepository implements PromotionRepository {
                 promotions.add(new Promotion(name, buy, get, startDate, endDate, stock));
             }
         } catch (IOException e) {
-            throw new RuntimeException("프로모션 파일을 읽는 중 오류가 발생했습니다.", e);
+            throw ErrorMessages.PROMOTION_FILE_READ_ERROR.getException(e.getMessage());
         }
         return promotions;
     }
@@ -68,7 +69,7 @@ public class FilePromotionRepository implements PromotionRepository {
                         promotion.getEndDate()));
             }
         } catch (IOException e) {
-            throw new RuntimeException("프로모션 파일을 저장하는 중 오류가 발생했습니다.", e);
+            throw ErrorMessages.PROMOTION_FILE_WRITE_ERROR.getException(e.getMessage());
         }
     }
 }
