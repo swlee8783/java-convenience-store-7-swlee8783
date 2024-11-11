@@ -6,6 +6,7 @@ import store.model.PurchaseResult;
 import store.repository.ProductRepository;
 import store.util.ErrorMessages;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +29,8 @@ public class PurchaseServiceImpl implements PurchaseService {
         Map<String, Integer> purchasedItems = parsePurchaseInput(input);
         validatePurchase(purchasedItems);
         updateInventory(purchasedItems);
-        Map<String, Integer> giftItems = calculateGiftItems(purchasedItems);
+        LocalDate currentDate = LocalDate.now();
+        Map<String, Integer> giftItems = calculateGiftItems(purchasedItems, currentDate);
         int totalPrice = calculateTotalPrice(purchasedItems);
         int promotionDiscount = calculatePromotionDiscount(purchasedItems);
         return new PurchaseResult(purchasedItems, totalPrice, promotionDiscount, giftItems);
@@ -65,48 +67,64 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
     }
 
-    private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems) {
+    private Map<String, Integer> calculateGiftItems(Map<String, Integer> purchasedItems, LocalDate currentDate) {
         Map<String, Integer> giftItems = new HashMap<>();
         for (Map.Entry<String, Integer> entry : purchasedItems.entrySet()) {
-            Product product = productService.getProductByName(entry.getKey());
-            if (product.getPromotion() != null) {
-                Promotion promotion = promotionService.getPromotionByName(product.getPromotion());
-                int giftQuantity = (entry.getValue() / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity())) * promotion.getGetFreeQuantity();
-                if (giftQuantity > 0) {
-                    giftItems.put(product.getName(), giftQuantity);
-                }
-            }
+            String productName = entry.getKey();
+            int quantity = entry.getValue();
+            addGiftItemIfEligible(giftItems, productName, quantity, currentDate);
         }
         return giftItems;
     }
 
-    private Optional<Product> findProduct(List<Product> products, String name) {
-        return products.stream()
-                .filter(product -> product.getName().equals(name))
-                .findFirst();
+    private void addGiftItemIfEligible(Map<String, Integer> giftItems, String productName, int quantity, LocalDate currentDate) {
+        Product product = productService.getProductByName(productName);
+        if (isEligibleForPromotion(product, currentDate)) {
+            int giftQuantity = calculateGiftQuantity(product, quantity, currentDate);
+            if (giftQuantity > 0) {
+                giftItems.put(productName, giftQuantity);
+            }
+        }
     }
 
+    private boolean isEligibleForPromotion(Product product, LocalDate currentDate) {
+        return product.getPromotion() != null &&
+                promotionService.isPromotionValid(product.getPromotion(), currentDate);
+    }
+
+    private int calculateGiftQuantity(Product product, int quantity, LocalDate currentDate) {
+        int discount = promotionService.calculateDiscount(product, quantity, currentDate);
+        return discount / product.getPrice();
+    }
+    
     @Override
     public void updateInventory(Map<String, Integer> items) {
-        for (Map.Entry<String, Integer> entry : items.entrySet()) {
-            productService.updateProductStock(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Integer> purchaseItem : items.entrySet()) {
+            String productName = purchaseItem.getKey();
+            int purchasedQuantity = purchaseItem.getValue();
+            productService.updateProductStock(productName, purchasedQuantity);
         }
     }
 
     private int calculateTotalPrice(Map<String, Integer> items) {
         return items.entrySet().stream()
-                .mapToInt(entry -> {
-                    Product product = productService.getProductByName(entry.getKey());
-                    return product.getPrice() * entry.getValue();
+                .mapToInt(purchaseEntry -> {
+                    String productName = purchaseEntry.getKey();
+                    int quantity = purchaseEntry.getValue();
+                    Product product = productService.getProductByName(productName);
+                    return product.getPrice() * quantity;
                 })
                 .sum();
     }
 
     private int calculatePromotionDiscount(Map<String, Integer> items) {
+        LocalDate currentDate = LocalDate.now();
         return items.entrySet().stream()
-                .mapToInt(entry -> {
-                    Product product = productService.getProductByName(entry.getKey());
-                    return promotionService.calculateDiscount(product, entry.getValue());
+                .mapToInt(purchaseEntry -> {
+                    String productName = purchaseEntry.getKey();
+                    int quantity = purchaseEntry.getValue();
+                    Product product = productService.getProductByName(productName);
+                    return promotionService.calculateDiscount(product, quantity, currentDate);
                 })
                 .sum();
     }

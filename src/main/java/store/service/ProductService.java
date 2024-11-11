@@ -2,6 +2,7 @@ package store.service;
 
 import store.model.Product;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface ProductService {
@@ -12,4 +13,6 @@ public interface ProductService {
     void updateProductStock(String name, int quantity);
 
     boolean isProductAvailable(String name, int quantity);
+
+    boolean isPromotionValid(String promotionName, LocalDate currentDate);
 }

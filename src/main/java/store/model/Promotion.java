@@ -4,12 +4,12 @@ import store.util.ErrorMessages;
 import java.time.LocalDate;
 
 public class Promotion {
-    private String name;
-    private int buyQuantity;
-    private int getFreeQuantity;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private int promotionStock;  // 추가된 필드
+    private final String name;
+    private final int buyQuantity;
+    private final int getFreeQuantity;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
+    private int promotionStock;
 
     public Promotion(String name, int buyQuantity, int getFreeQuantity, LocalDate startDate, LocalDate endDate, int promotionStock) {
         this.name = name;

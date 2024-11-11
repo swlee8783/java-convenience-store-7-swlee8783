@@ -15,12 +15,13 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
-    public int calculateDiscount(Product product, int quantity) {
-        Promotion promotion = promotionRepository.findPromotionByName(product.getPromotion())
-                .orElseThrow(() -> ErrorMessages.PROMOTION_NOT_FOUND.getException(product.getPromotion()));
-
-        int sets = quantity / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity());
-        return sets * promotion.getGetFreeQuantity() * product.getPrice();
+    public int calculateDiscount(Product product, int quantity, LocalDate currentDate) {
+        Promotion promotion = getPromotionByName(product.getPromotion());
+        if (promotion != null && promotion.isValidOn(currentDate)) {
+            int sets = quantity / (promotion.getBuyQuantity() + promotion.getGetFreeQuantity());
+            return sets * promotion.getGetFreeQuantity() * product.getPrice();
+        }
+        return 0;
     }
 
     @Override
